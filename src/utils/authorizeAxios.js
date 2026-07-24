@@ -42,6 +42,7 @@ authorizeAxiosInstance.interceptors.response.use(
           })
           .catch((_error) => {
             axiosReduxStore.dispatch(logoutUserAPI(false))
+            window.location.replace('/login')
             return Promise.reject(_error)
           } )
           .finally(() => {
@@ -60,7 +61,7 @@ authorizeAxiosInstance.interceptors.response.use(
       errorMessage = error.response?.data?.message
     }
 
-    if (error.response?.status !== 410) {
+    if (error.response?.status !== 410 && error.response?.status !== 409 ) {
       toast.error(errorMessage)
     }
 

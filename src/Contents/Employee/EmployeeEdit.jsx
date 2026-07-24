@@ -1,19 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Box, Button, FormControl, InputLabel, MenuItem, Paper, Select, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, FormControl, InputLabel, MenuItem, Paper, Select, Stack, TextField, Typography, FormHelperText } from '@mui/material'
 import SaveOutlined from '@mui/icons-material/SaveOutlined'
 import RestartAltOutlined from '@mui/icons-material/RestartAltOutlined'
 import { fetchUserDetailByIdAPI, updateUserAPI } from '../../apis'
-
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import { useNavigate, useParams } from 'react-router-dom'
-
-const ROLES = [
-  { RoleId: 1, RoleName: 'Admin' },
-  { RoleId: 2, RoleName: 'Quản Lý' },
-  { RoleId: 3, RoleName: 'Thu ngân' },
-  { RoleId: 4, RoleName: 'Pha Chế' },
-  { RoleId: 5, RoleName: 'Phục vụ' }
-]
+import  { ROLES } from '../../utils/roles'
 
 const formUserData = {
   RoleId: '',
@@ -29,95 +22,53 @@ function EmployeeEdit() {
     const { id } = useParams()
     const navigate = useNavigate()
 
-    const [formUser, setFormUser] = useState(formUserData)
-    const [initialUser, setInitialUser] = useState(formUserData)
-    const [errors, setErrors] = useState({})
     const [loading, setLoading] = useState(true)
+    const [initialUser, setInitialUser] = useState(formUserData)
+
+    const {register, control, handleSubmit, reset,  setError, formState: { errors,  isSubmitting } 
+  } = useForm({
+    defaultValues: formUserData
+  })
 
 
-    useEffect( () => {
-        // CAll API show user
-        fetchUserDetailByIdAPI(id).then(data => {
-        setFormUser(data)
-        setInitialUser(data)
+  useEffect(() => {
+    fetchUserDetailByIdAPI(id)
+      .then(data => {
+        const employeeData = {
+          RoleId: data?.RoleId ?? '',
+          FullName: data?.FullName || '',
+          Address: data?.Address || '',
+          PhoneNumber: data?.PhoneNumber || '',
+          Salary: data?.Salary ?? ''
+        }
+
+        setInitialUser(employeeData)
+        reset(employeeData)
+      })
+      .finally(() => {
         setLoading(false)
-        }).catch(() => {
-          // Không cần làm gì.
-          // authorizeAxios đã xử lý logout hoặc refresh token.
-        })
-    },[id])
+      })
+  }, [id, reset])
 
 
-  const handleChange = (event) => {
-    const { name, value } = event.target
-
-    setFormUser((previousData) => ({
-      ...previousData,
-      [name]: value
-    }))
-
-    setErrors((previousErrors) => ({
-      ...previousErrors,
-      [name]: ''
-    }))
-  }
-
-  const validateForm = () => {
-    const newErrors = {}
-
-    if (!formUser.FullName.trim()) {
-      newErrors.FullName = 'Vui lòng nhập họ và tên.'
+  
+  const handleUpdateEmployee  = async (data) => {
+    
+    const employeeData = {
+      RoleId: Number(data.RoleId),
+      FullName: data.FullName.trim(),
+      Address: data.Address.trim(),
+      PhoneNumber: data.PhoneNumber.trim(),
+      Salary: Number(data.Salary)
     }
-
-    if (!formUser.RoleId) {
-      newErrors.RoleId = 'Vui lòng chọn chức vụ.'
-    }
-
-    if (!formUser.Username.trim()) {
-      newErrors.Username = 'Vui lòng nhập tên đăng nhập.'
-    }
-
-    if (!formUser.PhoneNumber.trim()) {
-      newErrors.PhoneNumber = 'Vui lòng nhập số điện thoại.'
-    } else if (!/^[0-9]{9,11}$/.test(formUser.PhoneNumber.trim())) {
-      newErrors.PhoneNumber = 'Số điện thoại không hợp lệ.'
-    }
-
-    if (formUser.Salary === '') {
-      newErrors.Salary = 'Vui lòng nhập lương.'
-    } else if (Number(formUser.Salary) < 0) {
-      newErrors.Salary = 'Lương không được nhỏ hơn 0.'
-    }
-
-    setErrors(newErrors)
-
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-
-    if (!validateForm()) return
-
-      const employeeData = {
-        RoleId: Number(formUser.RoleId),
-        Username: formUser.Username.trim(),
-        FullName: formUser.FullName.trim(),
-        Address: formUser.Address.trim(),
-        PhoneNumber: formUser.PhoneNumber.trim(),
-        Salary: Number(formUser.Salary)
-      }
 
       await updateUserAPI(id, employeeData)
-
       toast.success('Employee updated successfully.')
-
       navigate('/employees')
   }
 
-  const handleReset = () => {
-    setFormUser(initialUser)
-    setErrors({})
+  const handleResetForm = () => {
+    reset(initialUser)
   }
 
   if (loading) {
@@ -142,7 +93,7 @@ function EmployeeEdit() {
 
       <Paper
         component="form"
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(handleUpdateEmployee)}
         variant="outlined"
         sx={{ p: { xs: 2,md: 4 }, borderRadius: 3 }} >
         <Stack
@@ -157,90 +108,106 @@ function EmployeeEdit() {
                 gap: 2.5
             }}
           >
-            <TextField
-              fullWidth
-              required
-              label="Họ và tên"
-              name="FullName"
-              value={formUser.FullName}
-              onChange={handleChange}
-              error={Boolean(errors.FullName)}
-              helperText={errors.FullName}
+             <TextField
+                fullWidth
+                label="Họ và tên"
+                error={Boolean(errors.FullName)}
+                helperText={errors.FullName?.message}
+                {...register('FullName', {
+                  required: 'Vui lòng nhập họ và tên.',
+                  validate: value =>
+                    value.trim() !== '' ||
+                    'Vui lòng nhập họ và tên.',
+                  maxLength: {
+                    value: 100,
+                    message:
+                      'Họ và tên không được vượt quá 100 ký tự.'
+                  }
+                })}
             />
 
-            <FormControl
-              fullWidth
-              required
-              error={Boolean(errors.RoleId)}
-            >
-              <InputLabel id="role-label">Chức vụ</InputLabel>
-
-              <Select
-                labelId="role-label"
-                label="Chức vụ"
-                name="RoleId"
-                value={formUser.RoleId}
-                onChange={handleChange}
-              >
-                {ROLES.map((role) => (
-                  <MenuItem
-                    key={role.RoleId}
-                    value={role.RoleId}
-                  >
-                    {role.RoleName}
-                  </MenuItem>
-                ))}
-              </Select>
-
-              {errors.RoleId && (
-                <Typography
-                  variant="caption"
-                  color="error"
-                  sx={{ ml: 1.75, mt: 0.5 }}
+            <Controller
+              name="RoleId"
+              control={control}
+              rules={{
+                required: 'Vui lòng chọn chức vụ.'
+              }}
+              render={({ field, fieldState: { error } }) => (
+                <FormControl
+                  fullWidth
+                  error={Boolean(error)}
                 >
-                  {errors.RoleId}
-                </Typography>
-              )}
-            </FormControl>
+                  <InputLabel id="role-label">
+                    Chức vụ
+                  </InputLabel>
 
-            <TextField
-              fullWidth
-              required
-              label="Tên đăng nhập"
-              name="Username"
-              value={formUser.Username}
-              onChange={handleChange}
-              error={Boolean(errors.Username)}
-              helperText={errors.Username}
+                  <Select
+                    {...field}
+                    labelId="role-label"
+                    label="Chức vụ"
+                  >
+                    {ROLES.map(role => (
+                      <MenuItem
+                        key={role.RoleId}
+                        value={role.RoleId}
+                      >
+                        {role.RoleName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  <FormHelperText>
+                    {error?.message}
+                  </FormHelperText>
+                </FormControl>
+              )}
             />
 
             <TextField
               fullWidth
-              required
+              label="Tên đăng nhập"
+              disabled
+               {...register('Username')}
+            />
+
+            <TextField
+              fullWidth
               label="Số điện thoại"
-              name="PhoneNumber"
-              value={formUser.PhoneNumber}
-              onChange={handleChange}
               error={Boolean(errors.PhoneNumber)}
-              helperText={errors.PhoneNumber}
+              helperText={errors.PhoneNumber?.message}
               inputProps={{
                 maxLength: 11
               }}
+              {...register('PhoneNumber', {
+                required: 'Vui lòng nhập số điện thoại.',
+                pattern: {
+                  value: /^[0-9]{9,11}$/,
+                  message:
+                    'Số điện thoại phải gồm từ 9 đến 11 chữ số.'
+                }
+              })}
             />
 
             <TextField
               fullWidth
-              required
               type="number"
               label="Lương"
-              name="Salary"
-              value={formUser.Salary}
-              onChange={handleChange}
               error={Boolean(errors.Salary)}
-              helperText={errors.Salary}
+              helperText={errors.Salary?.message}
               inputProps={{
                 min: 0
               }}
+              {...register('Salary', {
+                required: 'Vui lòng nhập lương.',
+                valueAsNumber: true,
+                min: {
+                  value: 0,
+                  message: 'Lương không được nhỏ hơn 0.'
+                },
+                validate: value =>
+                  !Number.isNaN(value) ||
+                  'Lương phải là một số hợp lệ.'
+              })}
             />
 
             <TextField
@@ -248,14 +215,20 @@ function EmployeeEdit() {
               multiline
               minRows={3}
               label="Địa chỉ"
-              name="Address"
-              value={formUser.Address}
-              onChange={handleChange}
-              sx={{
-                gridColumn: {
-                  xs: 'auto',
-                  md: '1 / -1'
+              error={Boolean(errors.Address)}
+              helperText={errors.Address?.message}
+              {...register('Address', {
+                required: 'Vui lòng nhập địa chỉ.',
+                validate: value =>
+                  value.trim() !== '' ||'Vui lòng nhập địa chỉ.',
+                maxLength: {
+                  value: 255,
+                  message:
+                    'Địa chỉ không được vượt quá 255 ký tự.'
                 }
+              })}
+              sx={{
+                gridColumn: {  xs: 'auto',  md: '1 / -1'}
               }}
             />
           </Box>
@@ -272,7 +245,7 @@ function EmployeeEdit() {
             variant="outlined"
             color="inherit"
             startIcon={<RestartAltOutlined />}
-            onClick={handleReset}
+            onClick={handleResetForm}
             sx={{ textTransform: 'none' }}
           >
             Khôi phục

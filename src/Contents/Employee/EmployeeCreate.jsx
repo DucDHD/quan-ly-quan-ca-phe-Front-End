@@ -1,22 +1,24 @@
 import { useState } from 'react'
 
-import { Box,Button, FormControl,InputLabel,MenuItem, Paper, Select, Stack,TextField,Typography } from '@mui/material'
+import { Box,Button, FormControl,InputLabel,MenuItem, Paper, Select, Stack,TextField,Typography, FormHelperText } from '@mui/material'
 
 import SaveOutlined from '@mui/icons-material/SaveOutlined'
 import RestartAltOutlined from '@mui/icons-material/RestartAltOutlined'
 import { createdUserAPI } from '~/apis'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
+import { useForm, Controller } from 'react-hook-form'
+import  { ROLES } from '../../utils/roles'
 
- const ROLES = [
-    { RoleId: 1, RoleName: 'Admin' },
-    { RoleId: 2, RoleName: 'Quản Lý' },
-    { RoleId: 3, RoleName: 'Thu ngân' },
-    { RoleId: 4, RoleName: 'Pha Chế' },
-    { RoleId: 5, RoleName: 'Phục vụ' },
 
-  ]
+//  const ROLES = [
+//     { RoleId: 1, RoleName: 'Admin' },
+//     { RoleId: 2, RoleName: 'Quản Lý' },
+//     { RoleId: 3, RoleName: 'Thu ngân' },
+//     { RoleId: 4, RoleName: 'Pha Chế' },
+//     { RoleId: 5, RoleName: 'Phục vụ' },
 
+//   ]
 
 const formUserData = {
   RoleId: '',
@@ -29,91 +31,38 @@ const formUserData = {
 }
 
 function EmployeeCreate() {
-  const [formUser, setFormUser] = useState(formUserData)
-  const [errors, setErrors] = useState({})
+  const { register, control, handleSubmit, setError, formState: { errors }, watch } = useForm({defaultValues: formUserData})
 
   const navigate = useNavigate()
 
  
-  const handleChange = (event) => {
-    const { name, value } = event.target
-
-    setFormUser((previousData) => ({
-      ...previousData,
-      [name]: value,
-    }))
-
-    setErrors((previousErrors) => ({
-      ...previousErrors,
-      [name]: '',
-    }))
-  }
-
-  const validateForm = () => {
-    const newErrors = {}
-
-    if (!formUser.FullName.trim()) {
-      newErrors.FullName = 'Vui lòng nhập họ và tên.'
-    }
-
-    if (!formUser.RoleId) {
-      newErrors.RoleId = 'Vui lòng chọn chức vụ.'
-    }
-
-    if (!formUser.Username.trim()) {
-      newErrors.Username = 'Vui lòng nhập tên đăng nhập.'
-    }
-
-    if (!formUser.Password.trim()) {
-      newErrors.Password = 'Vui lòng nhập mật khẩu.'
-    } else if (formUser.Password.length < 6) {
-      newErrors.Password = 'Mật khẩu phải có ít nhất 6 ký tự.'
-    }
-
-    if (!formUser.PhoneNumber.trim()) {
-      newErrors.PhoneNumber = 'Vui lòng nhập số điện thoại.'
-    } else if (!/^[0-9]{9,11}$/.test(formUser.PhoneNumber.trim())) {
-      newErrors.PhoneNumber = 'Số điện thoại không hợp lệ.'
-    }
-
-    if (!formUser.Salary) {
-      newErrors.Salary = 'Vui lòng nhập lương.'
-    } else if (Number(formUser.Salary) < 0) {
-      newErrors.Salary = 'Lương không được nhỏ hơn 0.'
-    }
-
-    setErrors(newErrors)
-
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-
-    if (!validateForm()) {
-      return
-    }
-
+  const handleCreateEmployee = async (data) => {
     const employeeData = {
-      RoleId: Number(formUser.RoleId),
-      Username: formUser.Username.trim(),
-      Password: formUser.Password,
-      FullName: formUser.FullName.trim(),
-      Address: formUser.Address.trim(),
-      PhoneNumber: formUser.PhoneNumber.trim(),
-      Salary: Number(formUser.Salary),
+      RoleId: Number(data.RoleId),
+      Username: data.Username.trim(),
+      Password: data.Password,
+      FullName: data.FullName.trim(),
+      Address: data.Address.trim(),
+      PhoneNumber: data.PhoneNumber.trim(),
+      Salary: Number(data.Salary),
     }
 
-    await createdUserAPI(employeeData)
-    toast.success('Employee created successfully.')
+    await createdUserAPI(employeeData).then( () => {
+        toast.success('Employee created successfully.')
+        navigate('/employees')
+    }).catch( error  => {
+      const statusCode = error?.response?.status
+      //const message = error?.response?.data?.message
 
-    navigate('/employees')
-
+      if ( statusCode === 409 ) {
+         setError('Username', {type: 'server',   message: 'Tên đăng nhập đã tồn tại.'})
+        return
+      }
+    })
   }
 
   const handleReset = () => {
     setFormUser(formUserData)
-    setErrors({})
   }
 
   return (
@@ -130,149 +79,135 @@ function EmployeeCreate() {
 
       <Paper
         component="form"
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(handleCreateEmployee)}
         variant="outlined"
-        sx={{
-          p: {
-            xs: 2,
-            md: 4,
-          },
-          borderRadius: 3,
-        }}
-      >
-        <Stack
-          direction={{
-            xs: 'column',
-            md: 'row',
-          }}
-          spacing={4}
-          alignItems="flex-start"
-        >
-          
+        sx={{ p: {  xs: 2,  md: 4, }, borderRadius: 3 }} >
+        <Stack  direction={{ xs: 'column',  md: 'row',}} spacing={4} alignItems="flex-start" >
           <Box
             sx={{
               flex: 1,
               width: '100%',
               display: 'grid',
-              gridTemplateColumns: {
-                xs: '1fr',
-                md: 'repeat(2, minmax(0, 1fr))',
-              },
+              gridTemplateColumns: {  xs: '1fr',  md: 'repeat(2, minmax(0, 1fr))' },
               gap: 2.5,
             }}
           >
             <TextField
               fullWidth
-              required
               label="Họ và tên"
-              name="FullName"
-              value={formUser?.FullName}
-              onChange={handleChange}
-              error={Boolean(errors?.FullName)}
-              helperText={errors?.FullName}
+              error={Boolean(errors.FullName)}
+              helperText={errors.FullName?.message}
+              {...register('FullName', {
+                required: 'Vui lòng nhập họ và tên.',
+                validate: value =>
+                  value.trim() !== '' || 'Vui lòng nhập họ và tên.'
+              })}
             />
 
-            <FormControl
-              fullWidth
-              required
-              error={Boolean(errors?.RoleId)}
-            >
-              <InputLabel id="role-label">Chức vụ</InputLabel>
+             <Controller  name="RoleId" control={control}rules={{  required: 'Vui lòng chọn chức vụ.' }} render={({ field }) => (
+                  <FormControl fullWidth  error={Boolean(errors.RoleId)} >
+                    <InputLabel id="role-label">
+                      Chức vụ
+                    </InputLabel>
+                    <Select  {...field}   labelId="role-label"  label="Chức vụ">
+                      {ROLES.map(role => (
+                        <MenuItem
+                          key={role.RoleId}
+                          value={role.RoleId}
+                        >
+                          {role.RoleName}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>
+                      {errors.RoleId?.message}
+                    </FormHelperText>
+                  </FormControl>
+                )}
+              />
 
-              <Select
-                labelId="role-label"
-                label="Chức vụ"
-                name="RoleId"
-                value={formUser.RoleId}
-                onChange={handleChange}
-              >
-                {ROLES.map((Role) => (
-                  <MenuItem
-                    key={Role.RoleId}
-                    value={Role.RoleId}
-                  >
-                    {Role.RoleName}
-                  </MenuItem>
-                ))}
-              </Select>
-
-              {errors.RoleId && (
-                <Typography
-                  variant="caption"
-                  color="error"
-                  sx={{ ml: 1.75, mt: 0.5 }}
-                >
-                  {errors.RoleId}
-                </Typography>
-              )}
-            </FormControl>
+           <TextField
+            fullWidth
+            label="Tên đăng nhập"
+            error={Boolean(errors.Username)}
+            helperText={errors.Username?.message}
+            {...register('Username', {
+              required: 'Vui lòng nhập tên đăng nhập.',
+              minLength: {
+                value: 4,
+                message: 'Tên đăng nhập phải có ít nhất 4 ký tự.'
+              },
+              pattern: {
+                value: /^[a-zA-Z0-9_]+$/,
+                message: 'Tên đăng nhập chỉ được chứa chữ, số và dấu gạch dưới.'
+              }
+            })}
+          />
 
             <TextField
               fullWidth
-              required
-              label="Tên đăng nhập"
-              name="Username"
-              value={formUser.Username}
-              onChange={handleChange}
-              error={Boolean(errors.Username)}
-              helperText={errors.Username}
-            />
-
-            <TextField
-              fullWidth
-              required
               type="password"
               label="Mật khẩu"
-              name="Password"
-              value={formUser.Password}
-              onChange={handleChange}
               error={Boolean(errors.Password)}
-              helperText={errors.Password}
+              helperText={errors.Password?.message}
+              {...register('Password', {
+                required: 'Vui lòng nhập mật khẩu.',
+                minLength: {
+                  value: 6,
+                  message: 'Mật khẩu phải có ít nhất 6 ký tự.'
+                }
+              })}
             />
 
             <TextField
               fullWidth
-              required
               label="Số điện thoại"
-              name="PhoneNumber"
-              value={formUser.PhoneNumber}
-              onChange={handleChange}
               error={Boolean(errors.PhoneNumber)}
-              helperText={errors.PhoneNumber}
+              helperText={errors.PhoneNumber?.message}
               inputProps={{
-                maxLength: 11,
+                maxLength: 11
               }}
+              {...register('PhoneNumber', {
+                required: 'Vui lòng nhập số điện thoại.',
+                pattern: {
+                  value: /^[0-9]{9,11}$/,
+                  message: 'Số điện thoại không hợp lệ.'
+                }
+              })}
             />
+             <TextField
+                fullWidth
+                type="number"
+                label="Lương"
+                error={Boolean(errors.Salary)}
+                helperText={errors.Salary?.message}
+                inputProps={{
+                  min: 0
+                }}
+                {...register('Salary', {
+                  required: 'Vui lòng nhập lương.',
+                  valueAsNumber: true,
+                  min: {
+                    value: 0,
+                    message:
+                      'Lương không được nhỏ hơn 0.'
+                  },
+                  validate: value =>
+                    !Number.isNaN(value) ||
+                    'Lương phải là một số hợp lệ.'
+                })}
+              />
 
-            <TextField
-              fullWidth
-              required
-              type="Number"
-              label="Lương"
-              name="Salary"
-              value={formUser.Salary}
-              onChange={handleChange}
-              error={Boolean(errors.Salary)}
-              helperText={errors.Salary}
-              inputProps={{
-                min: 0,
-              }}
-            />
-
-            <TextField
+           <TextField
               fullWidth
               multiline
               minRows={3}
               label="Địa chỉ"
-              name="Address"
-              value={formUser.Address}
-              onChange={handleChange}
-              sx={{
-                gridColumn: {
-                  xs: 'auto',
-                  md: '1 / -1',
-                },
-              }}
+              error={Boolean(errors.Address)}
+              helperText={errors.Address?.message}
+              {...register('Address', {
+                required: 'Vui lòng nhập địa chỉ.',
+              })}
             />
           </Box>
         </Stack>
