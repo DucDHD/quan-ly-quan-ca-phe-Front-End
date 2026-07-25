@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { Alert,Box,Button, Checkbox, FormControlLabel, IconButton, InputAdornment, Paper,Stack, TextField, Typography } from '@mui/material'
+import { Box,Button, Checkbox, FormControlLabel, IconButton, InputAdornment, Paper,Stack, TextField, Typography } from '@mui/material'
 
 import CoffeeOutlined from '@mui/icons-material/CoffeeOutlined'
 import LoginOutlined from '@mui/icons-material/LoginOutlined'
@@ -10,53 +10,71 @@ import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { loginUserAPI } from '~/redux/user/userSlice'
+import { useForm } from 'react-hook-form'
+import FieldErrorAlert from '../../components/Form/FieldErrorAlert'
+
+const loginDefaultValues = {
+  Username: '',
+  Password: '',
+  rememberMe: false
+}
 
 function Login() {
-  
-
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
-  const [formData, setFormData] = useState({
-    Username: '',
-    Password: '',
-    rememberMe: false,
+  const [showPassword, setShowPassword] = useState(false)
+  const { 
+    register, handleSubmit, setError, clearErrors, formState: { errors,  isSubmitting }
+  } = useForm({
+    defaultValues: loginDefaultValues
   })
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
 
-  const handleChange = (event) => {
-    const { name, value, checked, type } = event.target
+  // const handleLogin = async (data) => {
+  //   const { Username, Password } = data
 
-    setFormData((previousData) => ({
-      ...previousData,
-      [name]: type === 'checkbox' ? checked : value,
-    }))
+  //   toast.promise(
+  //     dispatch(loginUserAPI({ Username, Password })),
+  //     { pending: 'loging in...' }
+  //   ).then( res => {
+  //     if (!res.error) navigate('/')
+  //   })
 
-    setErrorMessage('')
-  }
+  // }
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
-    if (!formData.Username.trim()) {
-      setErrorMessage('Vui lòng nhập tên đăng nhập.')
-      return
-    }
 
-    if (!formData.Password.trim()) {
-      setErrorMessage('Vui lòng nhập mật khẩu.')
-      return
-    }
-    
+  // const handleLogin = async (data) => {
+  //   const { Username, Password } = data
+  //   try {
+  //     await dispatch( loginUserAPI({ Username, Password })).unwrap()
+  //     navigate('/')
+  //   } catch (error) {
+  //     const statusCode = error?.statusCode || error?.response?.status
+
+  //     if (statusCode === 406 || statusCode === 422) {
+  //       setError('Password', { type: 'server',   message: 'Tên đăng nhập và mật khẩu không hợp lệ' })
+  //       return
+  //     }
+  //   }
+  // }
+  const handleLogin = async data => {
     const loginData = {
-      Username: formData.Username.trim(),
-      Password: formData.Password
+      Username: data.Username.trim(),
+      Password: data.Password
     }
-    dispatch(loginUserAPI(loginData))
-    setErrorMessage('Tên đăng nhập hoặc mật khẩu không chính xác.')
-    navigate('/')
-    
+
+    const result = await dispatch(loginUserAPI(loginData))
+
+    if (loginUserAPI.fulfilled.match(result)) {
+      navigate('/')
+      return
+    }
+
+    setError('LoginError', {
+      type: 'server',
+      message: 'Tên đăng nhập hoặc mật khẩu không đúng.'
+    })
   }
 
   return (
@@ -116,46 +134,27 @@ function Login() {
             Phần mềm quản lý quán cà phê Bonsai Coffee
           </Typography>
         </Stack>
-
-        {errorMessage && (
-          <Alert
-            severity="error"
-            sx={{ mb: 2 }}
-          >
-            {errorMessage}
-          </Alert>
-        )}
-
         <Box
           component="form"
-          onSubmit={handleLogin}
+          onSubmit={handleSubmit(handleLogin)}
         >
           <Stack spacing={2.5}>
             <TextField
               fullWidth
               autoFocus
               label="Tên đăng nhập"
-              name="Username"
-              value={formData.Username}
-              onChange={handleChange}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonOutlineOutlined color="action" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
+              error={Boolean(errors.Username)}
+              helperText={errors.Username?.message}
+              {...register('Username', { required: 'Vui lòng nhập tên đăng nhập.', onChange: () => clearErrors('LoginError') })}
             />
 
-            <TextField
+             <TextField
               fullWidth
               label="Mật khẩu"
-              name="Password"
               type={showPassword ? 'text' : 'password'}
-              value={formData.Password}
-              onChange={handleChange}
+              error={Boolean(errors.Password)}
+              helperText={errors.Password?.message}
+              {...register('Password', {  required: 'Vui lòng nhập mật khẩu.', onChange: () => clearErrors('LoginError')})}
               slotProps={{
                 input: {
                   endAdornment: (
@@ -163,38 +162,17 @@ function Login() {
                       <IconButton
                         type="button"
                         edge="end"
-                        onClick={() =>
-                          setShowPassword((previous) => !previous)
-                        }
-                        aria-label={
-                          showPassword
-                            ? 'Ẩn mật khẩu'
-                            : 'Hiện mật khẩu'
-                        }
+                        onClick={() =>  setShowPassword(previous => !previous)  }
                       >
-                        {showPassword ? (
-                          <VisibilityOffOutlined />
-                        ) : (
-                          <VisibilityOutlined />
-                        )}
+                        {showPassword  ? <VisibilityOffOutlined />  : <VisibilityOutlined /> }
                       </IconButton>
                     </InputAdornment>
-                  ),
-                },
+                  )
+                }
               }}
             />
-
-            <FormControlLabel
-              control={
-                <Checkbox
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                />
-              }
-              label="Ghi nhớ đăng nhập"
-            />
-
+              <FieldErrorAlert errors={errors} fieldName="LoginError" />
+             <FormControlLabel  control={ <Checkbox {...register('rememberMe')}/> }  label="Ghi nhớ đăng nhập" />
             <Button
               fullWidth
               type="submit"
@@ -212,7 +190,6 @@ function Login() {
             </Button>
           </Stack>
         </Box>
-
         <Typography
           variant="caption"
           color="text.secondary"

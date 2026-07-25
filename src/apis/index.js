@@ -26,8 +26,8 @@ export const createdUserAPI = async (updateData) => {
 }
 
 
-export const getAllUserAPI = async () => {
-    const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/users`)
+export const getAllUserAPI = async (params) => {
+    const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/users`, { params })
     return response.data
 }
 
@@ -47,3 +47,5 @@ export const refreshTokenAPI = async () => {
   const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/users/refresh_token`)
   return response.data
 }
+
+
