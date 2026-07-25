@@ -61,9 +61,13 @@ authorizeAxiosInstance.interceptors.response.use(
       errorMessage = error.response?.data?.message
     }
 
-    if (error.response?.status !== 410 && error.response?.status !== 409 ) {
+    if (![404,406, 409, 410, 422].includes(error.response?.status)) {
       toast.error(errorMessage)
     }
+
+    // if (error.response?.status !== 410 && error.response?.status !== 409 ) {
+    //   toast.error(errorMessage)
+    // }
 
     return Promise.reject(error)
   }
