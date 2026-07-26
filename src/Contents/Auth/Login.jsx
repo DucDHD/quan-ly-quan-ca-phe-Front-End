@@ -197,7 +197,7 @@ function Login() {
           textAlign="center"
           sx={{ mt: 3 }}
         >
-          Tài khoản demo: admin / 123456
+          Tài khoản demo: admin / 12345678A
         </Typography>
       </Paper>
     </Box>
