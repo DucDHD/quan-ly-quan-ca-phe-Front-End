@@ -8,6 +8,8 @@ import { Navigate, Route, Routes, Outlet } from 'react-router-dom'
 import Login from './Contents/Auth/Login'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from './redux/user/userSlice'
+import PermissionRoute from './components/PermissionRoute/PermissionRoute'
+import { PERMISSIONS } from './utils/permissions'
 
 const ProtectedRoutes = ({ user }) => {
   if (!user) return <Navigate to='/login' replace={true} />
@@ -26,9 +28,15 @@ function App() {
         <Route element={<DashBoard />}>
           <Route path="/" element={<Home />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="employees" element={<EmployeeList />} />
-          <Route path="employees/create" element={<EmployeeCreate />} />
-          <Route  path="employees/edit/:id"  element={<EmployeeEdit />}/>
+           <Route element={ <PermissionRoute permission={PERMISSIONS.EMPLOYEE_VIEW} />} >
+            <Route path="employees" element={<EmployeeList />} />
+          </Route >
+          <Route element={ <PermissionRoute permission={PERMISSIONS.EMPLOYEE_CREATE} />} >
+            <Route path="employees/create" element={<EmployeeCreate />} />
+          </Route >
+          <Route element={ <PermissionRoute permission={PERMISSIONS.EMPLOYEE_UPDATE} />} >
+            <Route  path="employees/edit/:id"  element={<EmployeeEdit />}/>
+          </Route >
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

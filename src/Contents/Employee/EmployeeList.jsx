@@ -11,6 +11,11 @@ import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownR
 import { useNavigate } from 'react-router-dom'
 import Pagination from '@mui/material/Pagination'
 
+import PermissionGuard from '../../components/PermissionGuard/PermissionGuard'
+import { PERMISSIONS } from '../../utils/permissions'
+import { selectCurrentUser } from '../../redux/user/userSlice'
+import { hasPermission } from '../../utils/authorization'
+import { useSelector } from 'react-redux'
 
 const sortHeaderStyle = {
   display: 'inline-flex',
@@ -21,6 +26,15 @@ const sortHeaderStyle = {
 }
 
 function EmployeeList() {
+
+
+  const currentUser = useSelector(selectCurrentUser)
+
+ const action = (
+  hasPermission(currentUser?.RoleId, PERMISSIONS.EMPLOYEE_UPDATE) ||
+  hasPermission(currentUser?.RoleId, PERMISSIONS.EMPLOYEE_DELETE)
+)
+
 
 
   const [filters, setFilters] = useState({
@@ -202,10 +216,11 @@ function EmployeeList() {
                   {renderSortIcon('Salary')}
                 </Box>
               </TableCell>
-
+              {action && 
               <TableCell align="center">
                 Thao tác
               </TableCell>
+              }
             </TableRow>
           </TableHead>
 
@@ -224,14 +239,21 @@ function EmployeeList() {
                 <TableCell align="right">
                   {user.Salary.toLocaleString('vi-VN')} đ
                 </TableCell>
+                {action &&
                 <TableCell align="center">
-                  <IconButton color="primary">
-                    <EditOutlined onClick={() => navigate(`/employees/edit/${user.EmployeeId}`)} />
-                  </IconButton> 
-                  <IconButton color="error" onClick={() => handleDeleteUser(user.EmployeeId)} >
-                    <DeleteOutlineOutlined />
-                  </IconButton>
+                  <PermissionGuard permission={PERMISSIONS.EMPLOYEE_UPDATE}>
+                    <IconButton color="primary">
+                      <EditOutlined onClick={() => navigate(`/employees/edit/${user.EmployeeId}`)} />
+                    </IconButton>
+                  </PermissionGuard>
+                  <PermissionGuard permission={PERMISSIONS.EMPLOYEE_DELETE}>
+                  <IconButton color="error" onClick={() => handleDeleteUser(user.EmployeeId)} >                  
+                      <DeleteOutlineOutlined />
+                    </IconButton>
+                  </PermissionGuard>
                 </TableCell>
+                }
+              
               </TableRow>
             ))}
           </TableBody>

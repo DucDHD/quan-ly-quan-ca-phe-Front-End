@@ -1,17 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import {
-  Box,
-  Button,
-  Collapse,
-  Divider,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Typography
-} from '@mui/material'
+import { Box, Button, Collapse, Divider,List,ListItemButton, ListItemIcon, ListItemText, Typography } from '@mui/material'
 
 import {
   AssessmentOutlined,
@@ -30,6 +20,10 @@ import {
   SettingsOutlined,
   StorageOutlined
 } from '@mui/icons-material'
+
+import PermissionGuard from '../PermissionGuard/PermissionGuard'
+import { PERMISSIONS } from '../../utils/permissions'
+
 
 function Sidebar() {
   const navigate = useNavigate()
@@ -141,21 +135,23 @@ function Sidebar() {
 
               <ListItemText primary="Danh sách nhân viên" />
             </ListItemButton>
+            
+            <PermissionGuard permission={PERMISSIONS.EMPLOYEE_CREATE}>
+              <ListItemButton
+                selected={location.pathname === '/employees/create'}
+                onClick={() => navigate('/employees/create')}
+                sx={{
+                  ...menuStyle,
+                  pl: 6
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 38 }}>
+                  <PersonAddOutlined fontSize="small" />
+                </ListItemIcon>
 
-            <ListItemButton
-              selected={location.pathname === '/employees/create'}
-              onClick={() => navigate('/employees/create')}
-              sx={{
-                ...menuStyle,
-                pl: 6
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 38 }}>
-                <PersonAddOutlined fontSize="small" />
-              </ListItemIcon>
-
-              <ListItemText primary="Thêm nhân viên" />
-            </ListItemButton>
+                <ListItemText primary="Thêm nhân viên" />
+              </ListItemButton>
+            </PermissionGuard>
           </List>
         </Collapse>
 
