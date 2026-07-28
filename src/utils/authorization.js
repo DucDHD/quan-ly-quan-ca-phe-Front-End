@@ -6,4 +6,4 @@ export const hasPermission = (roleId, permission) => {
   const permissions = ROLE_PERMISSIONS[Number(roleId)] || []
 
   return permissions.includes(permission)
-}
+}   

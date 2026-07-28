@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux'
-import { hasPermission } from '../../utils/authorization'
-import { selectCurrentUser } from '../../redux/user/userSlice'
+import { hasPermission } from '~/utils/authorization'
+import { selectCurrentUser } from '~/redux/user/userSlice'
 
 
 function PermissionGuard({ permission, children, fallback = null }) {

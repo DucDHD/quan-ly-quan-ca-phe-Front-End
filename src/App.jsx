@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux'
 import { selectCurrentUser } from './redux/user/userSlice'
 import PermissionRoute from './components/PermissionRoute/PermissionRoute'
 import { PERMISSIONS } from './utils/permissions'
+import TableSales from './Contents/Sales/TableSales'
 
 const ProtectedRoutes = ({ user }) => {
   if (!user) return <Navigate to='/login' replace={true} />
@@ -37,6 +38,7 @@ function App() {
           <Route element={ <PermissionRoute permission={PERMISSIONS.EMPLOYEE_UPDATE} />} >
             <Route  path="employees/edit/:id"  element={<EmployeeEdit />}/>
           </Route >
+          <Route path="/sales" element={<TableSales />}/>
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

@@ -1,5 +1,5 @@
-import { ROLE_IDS } from '../utils/roles'
-import { PERMISSIONS } from '../utils/permissions'
+import { ROLE_IDS } from '~/utils/roles'
+import { PERMISSIONS } from '~/utils/permissions'
 
 export const ROLE_PERMISSIONS = {
   [ROLE_IDS.ADMIN]: [

@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { hasPermission } from '../../utils/authorization'
-import { selectCurrentUser } from '../../redux/user/userSlice'
+import { hasPermission } from '~/utils/authorization'
+import { selectCurrentUser } from '~/redux/user/userSlice'
 
 
 function PermissionRoute({ permission }) {
