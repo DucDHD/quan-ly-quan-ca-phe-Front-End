@@ -1,5 +1,5 @@
-import { API_ROOT } from '../utils/constants'
-import authorizeAxiosInstance from '../utils/authorizeAxios'
+import { API_ROOT } from '~/utils/constants'
+import authorizeAxiosInstance from '~/utils/authorizeAxios'
 
 
 /** User APIS */

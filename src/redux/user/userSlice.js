@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk  } from '@reduxjs/toolkit'
-import { API_ROOT } from '../../utils/constants'
+import { API_ROOT } from '~/utils/constants'
 import { toast } from 'react-toastify'
 
-import authorizeAxiosInstance from '../../utils/authorizeAxios'
+import authorizeAxiosInstance from '~/utils/authorizeAxios'
 
 const initialState = {
   currentUser: null

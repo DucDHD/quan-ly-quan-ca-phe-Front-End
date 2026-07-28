@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { Box, Button, FormControl, InputLabel, MenuItem, Paper, Select, Stack, TextField, Typography, FormHelperText } from '@mui/material'
 import SaveOutlined from '@mui/icons-material/SaveOutlined'
 import RestartAltOutlined from '@mui/icons-material/RestartAltOutlined'
-import { fetchUserDetailByIdAPI, updateUserAPI } from '../../apis'
+import { fetchUserDetailByIdAPI, updateUserAPI } from '~/apis'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import { useNavigate, useParams } from 'react-router-dom'
-import  { ROLES } from '../../utils/roles'
-import PermissionGuard from '../../components/PermissionGuard/PermissionGuard'
-import { PERMISSIONS } from '../../utils/permissions'
+import  { ROLES } from '~/utils/roles'
+// import PermissionGuard from '~/components/PermissionGuard/PermissionGuard'
+// import { PERMISSIONS } from '~/utils/permissions'
 
 const formUserData = {
   RoleId: '',
