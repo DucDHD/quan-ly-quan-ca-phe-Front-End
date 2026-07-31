@@ -71,6 +71,12 @@ export const orderProductAPI = async (updateData) => {
   return response.data
 }
 
+export const getTableDetailAPI = async (TableId) => {
+  const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/sales/view/${TableId}`,)
+  return response.data
+}
+
+
 
 
 
