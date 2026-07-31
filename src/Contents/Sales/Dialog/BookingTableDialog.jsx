@@ -7,97 +7,114 @@ import DialogTitle from '@mui/material/DialogTitle'
 import { useState } from 'react'
 import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
+import { bookingTableAPI } from '~/apis'
+import { useForm } from 'react-hook-form'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import { toast } from 'react-toastify'
 
-function BookingTableDialog( { selectedTable,  open, onClose, }) {
+function BookingTableDialog( { selectedTable,  open, onClose, handleUpdateTable }) {
 
-   const [bookingForm, setBookingForm] = useState({
-        CustomerName: '',
-        PhoneNumber: '',
-        BookingDate: '',
-        BookingTime: '',
-        PeopleCount: 1
+    const { register, handleSubmit, reset, formState: { errors } } = useForm({
+        defaultValues: { CustomerName: '', PhoneNumber: '', BookingDate: '', BookingHour: '', PeopleCount: 1 }
     })
-    const handleBookingFormChange = (event) => {
-        const { name, value } = event.target
 
-        setBookingForm(previous => ({
-            ...previous,
-            [name]: value
-        }))
+
+    const submitBooking = async (data) => {
+        try {
+            const BookingTime = `${data.BookingDate}T${data.BookingHour}:00`
+
+            const result = await bookingTableAPI({
+            CustomerName: data.CustomerName,
+            PhoneNumber: data.PhoneNumber,
+            TableId: selectedTable.TableId,
+            BookingTime,
+            PeopleCount: Number(data.PeopleCount)
+            })
+
+            handleUpdateTable(result.updateStatusTable)
+            toast.success('Đặt bàn thành công.')
+            reset()
+            onClose()
+            //onBookingSuccess()
+        } catch (error) {
+            console.error(error)
+            toast.error(error.response?.data?.message || 'Đặt bàn thất bại.')
+        }
     }
+    const handleClose = () => {
+        reset()
+        onClose()
+    }
+      return (
+        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle>Đặt bàn {selectedTable?.TableNumber}</DialogTitle>
 
-    return (
-        <Dialog
-            fullWidth
-            maxWidth="sm"
-            open={open} onClose={onClose}
-        >
-            <DialogTitle >
-                Đặt bàn{' '}
-                {selectedTable? String(selectedTable.TableNumber).padStart(2, '0'): ''}
-            </DialogTitle>
-
+        <Box component="form" onSubmit={handleSubmit(submitBooking)} >
             <DialogContent>
-                <Stack spacing={2} sx={{ mt: 1 }}>
-                    <TextField
-                        name="CustomerName"
-                        label="Tên khách hàng"
-                        value={bookingForm.CustomerName}
-                        onChange={handleBookingFormChange}
-                        fullWidth
-                    />
+            <TextField
+                fullWidth
+                label="Tên khách hàng"
+                margin="normal"
+                error={!!errors.CustomerName}
+                helperText={errors.CustomerName?.message}
+                {...register('CustomerName', {
+                required: 'Vui lòng nhập tên khách hàng.',
+                minLength: { value: 3, message: 'Tên khách hàng phải có ít nhất 3 ký tự.' }
+                })}
+            />
 
-                    <TextField
-                        name="PhoneNumber"
-                        label="Số điện thoại"
-                        value={bookingForm.PhoneNumber}
-                        onChange={handleBookingFormChange}
-                        fullWidth
-                    />
+            <TextField
+                fullWidth
+                label="Số điện thoại"
+                margin="normal"
+                error={!!errors.PhoneNumber}
+                helperText={errors.PhoneNumber?.message}
+                {...register('PhoneNumber', { required: 'Vui lòng nhập số điện thoại.' })}
+            />
 
-                    <Stack direction={{ xs: 'column', sm: 'row' }}spacing={2}>
-                        <TextField
-                            name="BookingDate"
-                            label="Ngày đặt"
-                            type="date"
-                            value={bookingForm.BookingDate}
-                            onChange={handleBookingFormChange}
-                            fullWidth
-                            slotProps={{ inputLabel: {  shrink: true  } }}
-                            
-                        />
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 1 }}>
 
-                        <TextField
-                            name="BookingTime"
-                            label="Giờ đặt"
-                            type="time"
-                            value={bookingForm.BookingTime}
-                            onChange={handleBookingFormChange}
-                            fullWidth
-                            slotProps={{ inputLabel: {  shrink: true  } }}
-                        />
-                    </Stack>
+                <TextField
+                type="date"
+                label="Ngày đặt"
+                slotProps={{ inputLabel: { shrink: true } }}
+                error={!!errors.BookingDate}
+                helperText={errors.BookingDate?.message}
+                {...register('BookingDate', { required: 'Vui lòng chọn ngày đặt.' })}
+                />
 
-                    <TextField
-                        name="PeopleCount"
-                        label="Số người"
-                        type="number"
-                        value={bookingForm.PeopleCount}
-                        onChange={handleBookingFormChange}
-                        fullWidth
-                        slotProps={{   htmlInput: {  min: 1 }}}
-                    />
-                </Stack>
+                <TextField
+                type="time"
+                label="Giờ đặt"
+                slotProps={{ inputLabel: { shrink: true } }}
+                error={!!errors.BookingHour}
+                helperText={errors.BookingHour?.message}
+                {...register('BookingHour', { required: 'Vui lòng chọn giờ đặt.' })}
+                />
+    
+            </Box>
+
+            <TextField
+                fullWidth
+                type="number"
+                label="Số người"
+                margin="normal"
+                inputProps={{ min: 1 }}
+                error={!!errors.PeopleCount}
+                helperText={errors.PeopleCount?.message}
+                {...register('PeopleCount', {
+                required: 'Vui lòng nhập số người.',
+                min: { value: 1, message: 'Số người phải lớn hơn 0.' }
+                })}
+            />
             </DialogContent>
-            <DialogActions>
-                <Button variant="outlined" onClick={onClose}>
-                    Hủy
-                </Button>
 
-                <Button variant="contained">
-                    Xác nhận
-                </Button>
+            <DialogActions>
+            <Button onClick={handleClose} variant="outlined">Hủy</Button>
+            <Button type="submit" variant="contained">Xác nhận</Button>
             </DialogActions>
+        </Box>
         </Dialog>
     )
 }
