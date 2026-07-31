@@ -239,8 +239,9 @@ function TableSales() {
       <PaymentDialog 
         open={currentDialog === DIALOG.PAYMENT} 
         selectedTable={selectedTable} 
-        onClose={handleCloseDialog
-        } />
+        onClose={handleCloseDialog}
+        handleUpdateTable={handleUpdateTable}
+      />
     </Box>
   )
 }

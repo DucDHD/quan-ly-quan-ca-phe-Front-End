@@ -72,7 +72,17 @@ export const orderProductAPI = async (updateData) => {
 }
 
 export const getTableDetailAPI = async (TableId) => {
-  const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/sales/view/${TableId}`,)
+  const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/sales/view/${TableId}`)
+  return response.data
+}
+
+export const getPaymentInfoAPI = async (TableId) => {
+  const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/sales/payment/${TableId}`)
+  return response.data
+}
+
+export const paymentAPI = async (TableId) => {
+  const response = await authorizeAxiosInstance.put(`${API_ROOT}/v1/sales/payment/${TableId}`)
   return response.data
 }
 
