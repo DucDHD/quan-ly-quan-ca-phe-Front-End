@@ -1,22 +1,41 @@
-import { useMemo, useState } from 'react'
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Paper, TextField, Typography } from '@mui/material'
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Paper, Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { getPaymentInfoAPI, paymentAPI } from '~/apis'
+import { toast } from 'react-toastify'
 
-const ORDER_ITEMS = [
-  { ProductId: 1, ProductName: 'Cà phê sữa', Price: 30000, Quantity: 2 },
-  { ProductId: 2, ProductName: 'Trà đào', Price: 35000, Quantity: 1 },
-  { ProductId: 3, ProductName: 'Pepsi', Price: 20000, Quantity: 3 }
-]
+function PaymentDialog({ open, selectedTable, onClose, handleUpdateTable }) {
 
-function PaymentDialog({ open, selectedTable, onClose }) {
-  const [customerPayment, setCustomerPayment] = useState('')
+  const [productInfo, setProductInfo] = useState([])
 
-  const totalPrice = useMemo(() => ORDER_ITEMS.reduce((total, item) => total + item.Price * item.Quantity, 0), [])
-  const changeAmount = Math.max(Number(customerPayment || 0) - totalPrice, 0)
+   useEffect(() => {
+    if (!open || !selectedTable?.TableId) return
+      const fetchProductInfo = async () => {
+        try {
+          const data = await getPaymentInfoAPI(selectedTable.TableId)
+          setProductInfo(data)
+        } catch (error) {
+          toast.error('Không thể lấy thông tin bàn')
+        }
+      }
+      fetchProductInfo()
+    }, [open, selectedTable?.TableId])
 
+  const totalPrice = productInfo.reduce( (total, product) => total + Number(product.Price) * Number(product.Quantity), 0)
   const formatCurrency = value => new Intl.NumberFormat('vi-VN').format(value) + ' đ'
 
+
+  const handlePayment = async () => {
+    try {
+      const result = await paymentAPI(selectedTable.TableId)
+      handleUpdateTable(result.updateStatusTable)
+      toast.success('Thanh toán thành công')
+      onClose()
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Thanh toán thất bại')
+    }
+  }
+
   const handleClose = () => {
-    setCustomerPayment('')
     onClose()
   }
 
@@ -37,8 +56,8 @@ function PaymentDialog({ open, selectedTable, onClose }) {
               <Typography fontWeight={700} textAlign="right">Thành tiền</Typography>
             </Box>
 
-            <Box sx={{ maxHeight: 260, overflowY: 'auto', overflowX: 'hidden' }}>
-              {ORDER_ITEMS.map(item => (
+            <Box sx={{ maxHeight: 260, overflowY: 'auto', overflowX: 'hidden', mb: 2 }}>
+              {productInfo.map(item => (
                 <Box key={item.ProductId} sx={{ display: 'grid', gridTemplateColumns: '1fr 80px 140px', alignItems: 'center', px: 1.5, py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
                   <Typography>{item.ProductName}</Typography>
                   <Typography textAlign="center">{item.Quantity}</Typography>
@@ -46,28 +65,9 @@ function PaymentDialog({ open, selectedTable, onClose }) {
                 </Box>
               ))}
             </Box>
-
-            <Divider sx={{ my: 2 }} />
-
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography fontWeight={700}>Tổng tiền</Typography>
               <Typography variant="h6" fontWeight={700} color="primary.main">{formatCurrency(totalPrice)}</Typography>
-            </Box>
-          </Paper>
-
-          <Paper variant="outlined" sx={{ p: 2, mt: 2, borderRadius: 2 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Khách đưa"
-              value={customerPayment}
-              onChange={event => setCustomerPayment(event.target.value)}
-              slotProps={{ htmlInput: { min: 0 } }}
-            />
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, p: 1.5, bgcolor: '#f1f5f9', borderRadius: 1 }}>
-              <Typography>Tiền thừa</Typography>
-              <Typography fontWeight={700}>{formatCurrency(changeAmount)}</Typography>
             </Box>
           </Paper>
         </Box>
@@ -75,7 +75,7 @@ function PaymentDialog({ open, selectedTable, onClose }) {
 
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button variant="outlined" onClick={handleClose}>Hủy</Button>
-        <Button variant="contained" disabled={Number(customerPayment) < totalPrice}>Thanh toán</Button>
+        <Button variant="contained" onClick={handlePayment} >Thanh toán</Button>
       </DialogActions>
     </Dialog>
   )

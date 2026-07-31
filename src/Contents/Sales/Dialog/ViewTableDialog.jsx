@@ -14,6 +14,7 @@ import { getTableDetailAPI } from '~/apis'
 function ViewTableDialog({ open, onClose, selectedTable}) {
 
   const [tableDetail, setTableDetail] = useState([])
+  
   useEffect(() => {
     if (!open || !selectedTable?.TableId) return
 
