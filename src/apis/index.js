@@ -49,3 +49,28 @@ export const refreshTokenAPI = async () => {
 }
 
 
+export const getAllTableAPI = async () => {
+  const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/sales`)
+  return response.data
+}
+
+
+export const bookingTableAPI = async (updateData) => {
+  const response = await authorizeAxiosInstance.post(`${API_ROOT}/v1/sales/booking_table`, updateData)
+  return response.data
+}
+
+export const getAllProductAPI = async () => {
+  const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/sales/products`)
+  return response.data
+}
+
+
+export const orderProductAPI = async (updateData) => {
+  const response = await authorizeAxiosInstance.post(`${API_ROOT}/v1/sales/orders`, updateData)
+  return response.data
+}
+
+
+
+

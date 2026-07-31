@@ -7,11 +7,13 @@ import MergeTableDialog from './Dialog/MergeTableDialog'
 import SplitTableDialog from './Dialog/SplitTableDialog'
 import TransferTableDialog from './Dialog/TransferTableDialog'
 import PaymentDialog from './Dialog/PaymentDialog'
-import { getTableActions } from './config/tableActions'
-import { DIALOG } from './config/dialogTypes'
+import { getTableActions } from '~/config/tableActions'
+import { DIALOG } from '~/config/dialogTypes'
 import { useConfirm } from 'material-ui-confirm'
 import { toast } from 'react-toastify'
 import { Box, Button, Card, Chip, Stack, Typography } from '@mui/material'
+import { useEffect } from 'react'
+import { getAllTableAPI } from '~/apis'
 
 const TABLE_STATUS = {
   AVAILABLE: 1,
@@ -20,26 +22,36 @@ const TABLE_STATUS = {
 }
 
 
-const INITIAL_TABLES = Array.from(
-  { length: 20 },
-  (_, index) => ({
-    TableId: index + 1,
-    TableNumber: index + 1,
-    TableStatus: index >= 4 && index <= 7 ? TABLE_STATUS.OCCUPIED : TABLE_STATUS.AVAILABLE })
-)
-
+// const INITIAL_TABLES = Array.from(
+//   { length: 20 },
+//   (_, index) => ({
+//     TableId: index + 1,
+//     TableNumber: index + 1,
+//     TableStatus: index >= 4 && index <= 7 ? TABLE_STATUS.OCCUPIED : TABLE_STATUS.AVAILABLE })
+// )
 
 function TableSales() {
 
   const confirm = useConfirm()
+  const [tableList, setTableList] = useState([])
+    const [selectedTable, setSelectedTable] = useState(null)
 
-  const [tableList, setTableList] = useState(INITIAL_TABLES)
-  const [selectedTable, setSelectedTable] = useState(null)
+  /** Get all Table */
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const getAllTable = await getAllTableAPI()
+        
+        setTableList(getAllTable)
+      } catch (error) { console.error(error) }
+    }
+    fetchTables()
+}, [])
+
+  
 
   const isAvailable = selectedTable?.TableStatus === TABLE_STATUS.AVAILABLE
-
   const isOccupied = selectedTable?.TableStatus === TABLE_STATUS.OCCUPIED
-
   const isReserved = selectedTable?.TableStatus === TABLE_STATUS.RESERVED
 
   const availableCount = tableList.filter(table => table.TableStatus === TABLE_STATUS.AVAILABLE).length
@@ -118,6 +130,18 @@ function TableSales() {
     })
   }
 
+  // hàm update status table
+  const handleUpdateTable = (updatedTable) => {
+    setTableList(previous =>
+      previous.map(table =>
+        table.TableId === updatedTable.TableId ? updatedTable : table
+      )
+    )
+    setSelectedTable(previous =>
+      previous?.TableId === updatedTable.TableId ? updatedTable : previous
+    )
+  }
+
   return (
     <Box sx={{ width: '100%', pb: 1 }}>
       <Card sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: 1.5, borderRadius: 2 }}>
@@ -134,73 +158,6 @@ function TableSales() {
               <Chip label="Đang chọn" size="small" sx={{ bgcolor: '#90caf9' }} />
           </Stack>
         </Stack>
-        {/* <Box
-            sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                xs: 'repeat(2, 1fr)',
-                sm: 'repeat(3, 1fr)',
-                md: 'repeat(4, 1fr)',
-                lg: 'repeat(5, 1fr)'
-                },
-                gap: 1
-            }}
-        >
-            
-             {tableList.map(table => (
-                <Box
-                    key={table.TableId}
-                    onClick={() => handleSelectTable(table)}
-                    sx={{
-                        minHeight: 90,
-                        border: '1px solid',
-                        borderColor: selectedTable?.TableId === table.TableId ? 'primary.main': 'divider',
-                        borderRadius: 2,
-                        bgcolor: getTableBackground(table),
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        boxShadow: selectedTable?.TableId === table.TableId  ? 3 : 0
-                    }}
-                >
-                   <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}
-                        >
-                        <Typography fontWeight={700}>
-                            Bàn {table.TableNumber}
-                        </Typography>
-
-                        <Typography variant="caption"color="text.secondary" >
-                            {getTableStatusName(table.TableStatus)}
-                        </Typography>
-                    </Box>
-                </Box>
-                ))}
-                {tableActions.map(action => (
-                  <Button
-                        key={action.dialog}
-                        disabled={action.disabled}
-                        variant={action.variant}
-                        onClick={() => handleOpenDialog(action.dialog)}
-                      >
-                        {action.label}
-                  </Button>))
-                }
-                <Button
-                  color="error"
-                  variant="outlined"
-                  disabled={!isOccupied && !isReserved}
-                  onClick={() => handleCancelTable(selectedTable.TableId)}
-                >
-                  Hủy bàn
-                </Button>
-        </Box> */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)', lg: 'repeat(5, 1fr)' }, gap: 1 }}>
           {tableList.map(table => (
             <Box
@@ -248,6 +205,7 @@ function TableSales() {
         open={currentDialog === DIALOG.BOOKING}
         onClose={handleCloseDialog}
         selectedTable={selectedTable}
+        handleUpdateTable={handleUpdateTable}
         />
       <ViewTableDialog
         open={currentDialog === DIALOG.VIEW}
@@ -258,6 +216,7 @@ function TableSales() {
         open={currentDialog === DIALOG.ORDER}
         onClose={handleCloseDialog}
         selectedTable={selectedTable}
+        handleUpdateTable={handleUpdateTable}
       />
       <MergeTableDialog
         open={currentDialog === DIALOG.MERGE}

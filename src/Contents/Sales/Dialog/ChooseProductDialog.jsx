@@ -6,52 +6,50 @@ import DialogTitle from '@mui/material/DialogTitle'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { Box, Checkbox, Chip, Divider, IconButton, Paper, Typography } from '@mui/material'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getAllProductAPI } from '~/apis'
+import { toast } from 'react-toastify'
+import { orderProductAPI } from '~/apis'
 
-const PRODUCT_LIST = [
-    {
-        ProductId: 1,
-        ProductName: 'Cà phê sữa',
-        Price: 30000
-    },
-    {
-        ProductId: 2,
-        ProductName: 'Trà đào',
-        Price: 35000
-    },
-    {
-        ProductId: 3,
-        ProductName: 'Sinh tố bơ',
-        Price: 45000
-    },
-    {
-        ProductId: 4,
-        ProductName: 'Pepsi',
-        Price: 20000
-    },
-     {
-        ProductId: 5,
-        ProductName: 'Cà phê sữa',
-        Price: 30000
-    },
-    {
-        ProductId: 6,
-        ProductName: 'Trà đào',
-        Price: 35000
-    },
-    {
-        ProductId: 7,
-        ProductName: 'Sinh tố bơ',
-        Price: 45000
-    },
-    {
-        ProductId: 8,
-        ProductName: 'Pepsi',
-        Price: 20000
+function ChooseProductDialog({open, onClose, selectedTable, handleUpdateTable }) {
+
+    const [productList, setProductList] = useState([])
+    //const [selectedProducts, setSelectedProducts] = useState([])
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+            const products = await getAllProductAPI()
+            setProductList(products)
+            } catch (error) { console.error(error) }
+        }
+        fetchProducts()
+    }, [])
+
+    const handleOrderProduct = async () => {
+      try {
+        const products = productList.filter(product => productQuantities[product.ProductId] > 0).map( product => ({
+            ProductId: product.ProductId,
+            Quantity: productQuantities[product.ProductId]
+          }))
+
+        const data = {
+          TableId: selectedTable.TableId,
+          Products: products
+        }
+
+        const result = await orderProductAPI(data)
+        if (result.updateStatusTable) {
+          handleUpdateTable(result.updateStatusTable)
+        }
+
+        toast.success('Chọn món thành công')
+        setProductQuantities({})
+        onClose()
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Có lỗi xảy ra')
+      }
     }
-]
-
-function ChooseProductDialog({open,onClose,selectedTable }) {
 
     const [productQuantities, setProductQuantities] = useState({})
 
@@ -106,7 +104,7 @@ function ChooseProductDialog({open,onClose,selectedTable }) {
             <Divider />
 
             <Box sx={{ maxHeight: 360, overflowY: 'auto', overflowX: 'hidden' }}>
-                {PRODUCT_LIST.map(product => (
+                {productList.map(product => (
                     <Box
                     key={product.ProductId}
                     sx={{ display: 'grid', gridTemplateColumns: '50px 1fr 130px 160px', alignItems: 'center', px: 1.5, py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}
@@ -152,16 +150,11 @@ function ChooseProductDialog({open,onClose,selectedTable }) {
           </Box>
         </DialogContent>
       <DialogActions>
-        <Button
-          variant="outlined"
-          onClick={onClose}
-        >
+        <Button  variant="outlined"  onClick={onClose} >
           Hủy
         </Button>
 
-        <Button
-          variant="contained"
-        >
+        <Button variant="contained" onClick={handleOrderProduct} >
           Lưu
         </Button>
       </DialogActions>
