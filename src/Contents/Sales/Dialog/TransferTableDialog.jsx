@@ -1,11 +1,34 @@
 import { useState } from 'react'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper, TextField, Typography } from '@mui/material'
+import { toast } from 'react-toastify'
+import { tranferTableAPI } from '~/apis'
 
-function TransferTableDialog({ open, selectedTable, availableTables, onClose }) {
+function TransferTableDialog({ open, selectedTable, getTableEmpty, onClose, handleUpdateRelatedTables }) {
   const [targetTableId, setTargetTableId] = useState('')
+  const [isSubmitted, setIsSubmitted] = useState(false)
+
+
+  const handleTranferTable = async () => {
+    setIsSubmitted(true)
+
+    if (!targetTableId || !selectedTable?.TableId) return updatedOldTabel, updatedNewTable
+
+    const result = await tranferTableAPI({
+      oldTableId: selectedTable.TableId,
+      newTableId: Number(targetTableId)
+    })
+
+    handleUpdateRelatedTables(
+      result.updatedOldTabel,
+      result.updatedNewTable
+    )
+    handleClose()
+    toast.success('Chuyển bàn thành công.')
+  }
 
   const handleClose = () => {
     setTargetTableId('')
+    setIsSubmitted(false)
     onClose()
   }
 
@@ -26,10 +49,12 @@ function TransferTableDialog({ open, selectedTable, availableTables, onClose }) 
               select
               fullWidth
               label="Bàn chuyển đến"
+              error={isSubmitted && !targetTableId}
               value={targetTableId}
               onChange={event => setTargetTableId(event.target.value)}
+              helperText={ isSubmitted && !targetTableId ? 'Vui lòng chọn bàn cần chuyển' : '' }
             >
-              {availableTables.map(table => (
+              {getTableEmpty.map(table => (
                 <MenuItem key={table.TableId} value={table.TableId}>
                   Bàn {String(table.TableNumber).padStart(2, '0')}
                 </MenuItem>
@@ -48,7 +73,7 @@ function TransferTableDialog({ open, selectedTable, availableTables, onClose }) 
                 <Typography variant="body2" color="text.secondary">Chuyển đến</Typography>
                 <Typography fontWeight={700}>
                   {targetTableId
-                    ? `Bàn ${availableTables.find(table => table.TableId === targetTableId)?.TableNumber}`
+                    ? `Bàn ${getTableEmpty.find(table => table.TableId === targetTableId)?.TableNumber}`
                     : 'Chưa chọn bàn'}
                 </Typography>
               </Box>
@@ -59,7 +84,7 @@ function TransferTableDialog({ open, selectedTable, availableTables, onClose }) 
 
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button variant="outlined" onClick={handleClose}>Hủy</Button>
-        <Button variant="contained" disabled={!targetTableId}>Chuyển bàn</Button>
+        <Button variant="contained" onClick={handleTranferTable}>Chuyển bàn</Button>
       </DialogActions>
     </Dialog>
   )

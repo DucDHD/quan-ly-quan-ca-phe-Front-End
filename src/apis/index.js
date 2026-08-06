@@ -86,6 +86,40 @@ export const paymentAPI = async (TableId) => {
   return response.data
 }
 
+export const tranferTableAPI = async (data) => {
+  const response = await authorizeAxiosInstance.put(`${API_ROOT}/v1/sales/tranfer_table`, data)
+  return response.data
+}
+
+export const getInfoSplitTable = async (TableId) => {
+  const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/sales/split_table/${TableId}`)
+  return response.data
+}
+
+export const splitTableAPI = async (data) => {
+  const response = await authorizeAxiosInstance.put(`${API_ROOT}/v1/sales/split_table`, data)
+  return response.data
+}
+
+export const cancelTableAPI = async (TableId) => {
+  const response = await authorizeAxiosInstance.put(`${API_ROOT}/v1/sales/cancel_table/${TableId}`)
+  return response.data
+}
+
+
+
+export const mergeTableAPI = async (data) => {
+  const response = await authorizeAxiosInstance.put(`${API_ROOT}/v1/sales/merge_table`, data)
+  return response.data
+}
+
+
+
+
+
+
+
+
 
 
 

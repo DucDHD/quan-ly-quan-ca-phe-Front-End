@@ -13,7 +13,7 @@ import { useConfirm } from 'material-ui-confirm'
 import { toast } from 'react-toastify'
 import { Box, Button, Card, Chip, Stack, Typography } from '@mui/material'
 import { useEffect } from 'react'
-import { getAllTableAPI } from '~/apis'
+import { getAllTableAPI, cancelTableAPI } from '~/apis'
 
 const TABLE_STATUS = {
   AVAILABLE: 1,
@@ -21,14 +21,6 @@ const TABLE_STATUS = {
   RESERVED: 3
 }
 
-
-// const INITIAL_TABLES = Array.from(
-//   { length: 20 },
-//   (_, index) => ({
-//     TableId: index + 1,
-//     TableNumber: index + 1,
-//     TableStatus: index >= 4 && index <= 7 ? TABLE_STATUS.OCCUPIED : TABLE_STATUS.AVAILABLE })
-// )
 
 function TableSales() {
 
@@ -115,23 +107,27 @@ function TableSales() {
       table.TableId !== selectedTable?.TableId
   )
   
-  const availableTables = tableList.filter(table =>
-    table.TableStatus === TABLE_STATUS.AVAILABLE
+  const getTableEmpty = tableList.filter(table =>
+    table.TableStatus === TABLE_STATUS.AVAILABLE &&
+    table.TableId !== selectedTable?.TableId
   )
 
-  const handleCancelTable = tableId => {
+  const handleCancelTable = (tableId) => {
     confirm({
       title: 'Hủy bàn',
       description: 'Bạn có chắc muốn hủy bàn này không?',
       confirmationText: 'Xác nhận',
       cancellationText: 'Hủy'
-    }).then(() => {
-      //toast.success('Hủy bàn thành công.')
+    }).then(async () => {
+      const result = await cancelTableAPI(tableId)
+      handleUpdateTable(result.updatedStatusTable)
+      toast.success('Hủy bàn thành công.')
     })
   }
 
   // hàm update status table
   const handleUpdateTable = (updatedTable) => {
+    if (!updatedTable) return
     setTableList(previous =>
       previous.map(table =>
         table.TableId === updatedTable.TableId ? updatedTable : table
@@ -139,6 +135,31 @@ function TableSales() {
     )
     setSelectedTable(previous =>
       previous?.TableId === updatedTable.TableId ? updatedTable : previous
+    )
+  }
+
+  const handleUpdateRelatedTables = (updatedOldTable, updatedNewTable, nextSelectedTable ) => {
+    if (!updatedOldTable || !updatedNewTable) return
+
+    setTableList(previous =>
+      previous.map(table => {
+        if (table.TableId === updatedOldTable.TableId) return updatedOldTable
+        if (table.TableId === updatedNewTable.TableId) return updatedNewTable
+        return table
+      })
+    )
+
+    setSelectedTable(nextSelectedTable)
+  }
+
+  const handleUpdateMergedTables = (updatedStatusTables) => {
+    setTableList(previous =>
+      previous.map(table => {
+        const updatedTable = updatedStatusTables.find(
+          item => item.TableId === table.TableId
+        )
+        return updatedTable || table
+      })
     )
   }
 
@@ -194,7 +215,7 @@ function TableSales() {
           <Button
             color="error"
             variant="outlined"
-            disabled={!isOccupied && !isReserved}
+            disabled={!isReserved}
             onClick={() => handleCancelTable(selectedTable.TableId)}
           >
             Hủy bàn
@@ -222,18 +243,21 @@ function TableSales() {
         open={currentDialog === DIALOG.MERGE}
         selectedTable={selectedTable}
         occupiedTables={occupiedTables}
+        handleUpdateMergedTables={handleUpdateMergedTables}
         onClose={handleCloseDialog}
       />
       <SplitTableDialog
         open={currentDialog === DIALOG.SPLIT}
         selectedTable={selectedTable}
-        availableTables={availableTables}
+        getTableEmpty={getTableEmpty}
+        handleUpdateTable={handleUpdateTable}
         onClose={handleCloseDialog}
       />
       <TransferTableDialog
         open={currentDialog === DIALOG.TRANSFER}
         selectedTable={selectedTable}
-        availableTables={availableTables}
+        getTableEmpty={getTableEmpty}
+        handleUpdateRelatedTables={handleUpdateRelatedTables}
         onClose={handleCloseDialog}
       />
       <PaymentDialog 
