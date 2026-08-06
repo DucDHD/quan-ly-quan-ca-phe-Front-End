@@ -4,7 +4,7 @@ export const getTableActions = ({isAvailable, isOccupied, isReserved}) =>
   [{
       label: 'Xem bàn',
       dialog: DIALOG.VIEW,
-      disabled: !isOccupied && !isReserved,
+      disabled: !isOccupied,
       variant: 'outlined'
     },
     {
@@ -22,7 +22,7 @@ export const getTableActions = ({isAvailable, isOccupied, isReserved}) =>
     {
       label: 'Thanh toán',
       dialog: DIALOG.PAYMENT,
-      disabled: !isOccupied && !isReserved,
+      disabled: !isOccupied,
       variant: 'contained'
     },
     {

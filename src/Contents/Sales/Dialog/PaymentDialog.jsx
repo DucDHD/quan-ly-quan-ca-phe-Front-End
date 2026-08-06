@@ -7,7 +7,7 @@ function PaymentDialog({ open, selectedTable, onClose, handleUpdateTable }) {
 
   const [productInfo, setProductInfo] = useState([])
 
-   useEffect(() => {
+  useEffect(() => {
     if (!open || !selectedTable?.TableId) return
       const fetchProductInfo = async () => {
         try {
@@ -18,7 +18,7 @@ function PaymentDialog({ open, selectedTable, onClose, handleUpdateTable }) {
         }
       }
       fetchProductInfo()
-    }, [open, selectedTable?.TableId])
+  }, [open, selectedTable?.TableId])
 
   const totalPrice = productInfo.reduce( (total, product) => total + Number(product.Price) * Number(product.Quantity), 0)
   const formatCurrency = value => new Intl.NumberFormat('vi-VN').format(value) + ' đ'
@@ -28,8 +28,8 @@ function PaymentDialog({ open, selectedTable, onClose, handleUpdateTable }) {
     try {
       const result = await paymentAPI(selectedTable.TableId)
       handleUpdateTable(result.updateStatusTable)
+      handleClose()
       toast.success('Thanh toán thành công')
-      onClose()
     } catch (error) {
       toast.error(error.response?.data?.message || 'Thanh toán thất bại')
     }

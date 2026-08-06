@@ -4,13 +4,11 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import { useState } from 'react'
-import Stack from '@mui/material/Stack'
+
 import Button from '@mui/material/Button'
 import { bookingTableAPI } from '~/apis'
 import { useForm } from 'react-hook-form'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import { toast } from 'react-toastify'
 
 function BookingTableDialog( { selectedTable,  open, onClose, handleUpdateTable }) {
