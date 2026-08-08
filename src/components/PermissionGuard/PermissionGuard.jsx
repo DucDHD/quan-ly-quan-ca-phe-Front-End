@@ -2,12 +2,10 @@ import { useSelector } from 'react-redux'
 import { hasPermission } from '~/utils/authorization'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 
-
-function PermissionGuard({ permission, children, fallback = null }) {
-
+function PermissionGuard({ resource, permission, children, fallback = null }) {
   const currentUser = useSelector(selectCurrentUser)
 
-  const allowed = hasPermission(  currentUser?.RoleId, permission)
+  const allowed = hasPermission( currentUser?.RoleId, resource, permission)
 
   if (!allowed) {
     return fallback

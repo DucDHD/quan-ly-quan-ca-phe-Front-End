@@ -28,7 +28,14 @@ function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const [employeeOpen, setEmployeeOpen] = useState(location.pathname.startsWith('/employees'))
+  //const [employeeOpen, setEmployeeOpen] = useState(location.pathname.startsWith('/employees'))
+
+  const [openMenu, setOpenMenu] = useState(() => {
+    if (location.pathname.startsWith('/employees')) return 'employees'
+    if (location.pathname.startsWith('/equipments')) return 'equipments'
+    if (location.pathname.startsWith('/inventorys')) return 'inventorys'
+    return ''
+  })
 
   const menuStyle = {
     mb: 0.5,
@@ -72,20 +79,20 @@ function Sidebar() {
           <ListItemText primary="Trang cá nhân" />
         </ListItemButton>
 
-        <ListItemButton selected={location.pathname.startsWith('/employees')} onClick={() => setEmployeeOpen(open => !open)} sx={menuStyle}>
+        <ListItemButton selected={location.pathname.startsWith('/employees')} onClick={() => {setOpenMenu(openMenu === 'employees' ? '' : 'employees') }}  sx={menuStyle}>
           <ListItemIcon sx={{ minWidth: 42 }}><BadgeOutlined /></ListItemIcon>
           <ListItemText primary="Quản lý nhân viên" />
-          {employeeOpen ? <ExpandLess /> : <ExpandMore />}
+          {openMenu === 'employees' ? <ExpandLess /> : <ExpandMore />}
         </ListItemButton>
 
-        <Collapse in={employeeOpen} timeout="auto" unmountOnExit>
+        <Collapse in={openMenu === 'employees'} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItemButton selected={location.pathname === '/employees'} onClick={() => navigate('/employees')} sx={{ ...menuStyle, pl: 6 }}>
               <ListItemIcon sx={{ minWidth: 38 }}><PeopleOutlined fontSize="small" /></ListItemIcon>
               <ListItemText primary="Danh sách nhân viên" />
             </ListItemButton>
 
-            <PermissionGuard permission={PERMISSIONS.EMPLOYEE_CREATE}>
+            <PermissionGuard resource="employees" permission={PERMISSIONS.CREATE}>
               <ListItemButton selected={location.pathname === '/employees/create'} onClick={() => navigate('/employees/create')} sx={{ ...menuStyle, pl: 6 }}>
                 <ListItemIcon sx={{ minWidth: 38 }}><PersonAddOutlined fontSize="small" /></ListItemIcon>
                 <ListItemText primary="Thêm nhân viên" />
@@ -99,19 +106,53 @@ function Sidebar() {
           <ListItemText primary="Quản lý bán hàng" />
         </ListItemButton>
 
-        <ListItemButton sx={menuStyle}>
+       
+
+        <ListItemButton selected={location.pathname.startsWith('/equipments')} onClick={() => {setOpenMenu(openMenu === 'equipments' ? '' : 'equipments') }}  sx={menuStyle}>
           <ListItemIcon sx={{ minWidth: 42 }}><SettingsOutlined /></ListItemIcon>
           <ListItemText primary="Quản lý trang thiết bị" />
+          {openMenu === 'equipments' ? <ExpandLess /> : <ExpandMore />}
         </ListItemButton>
+        <Collapse in={openMenu === 'equipments'} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItemButton selected={location.pathname === '/equipments'} onClick={() => navigate('/equipments')} sx={{ ...menuStyle, pl: 6 }}>
+              <ListItemIcon sx={{ minWidth: 38 }}><PeopleOutlined fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Danh sách thiết bị" />
+            </ListItemButton>
+            <PermissionGuard resource="equipments" permission={PERMISSIONS.CREATE}>
+              <ListItemButton selected={location.pathname === '/equipment/create'} onClick={() => navigate('/equipment/create')} sx={{ ...menuStyle, pl: 6 }}>
+                <ListItemIcon sx={{ minWidth: 38 }}><PersonAddOutlined fontSize="small" /></ListItemIcon>
+                <ListItemText primary="Thêm Thiết Bị" />
+              </ListItemButton>
+            </PermissionGuard>
+          </List>
+        </Collapse>
 
-        <ListItemButton sx={menuStyle}>
+        <ListItemButton selected={location.pathname.startsWith('/inventorys')}  onClick={() => {setOpenMenu(openMenu === 'inventorys' ? '' : 'inventorys') }} sx={menuStyle}>
           <ListItemIcon sx={{ minWidth: 42 }}><Inventory2Outlined /></ListItemIcon>
           <ListItemText primary="Quản lý kho hàng" />
+          {openMenu === 'inventorys' ? <ExpandLess /> : <ExpandMore />}
         </ListItemButton>
+
+         <Collapse in={openMenu === 'inventorys'} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItemButton selected={location.pathname === '/inventorys'} onClick={() => navigate('/inventorys')} sx={{ ...menuStyle, pl: 6 }}>
+              <ListItemIcon sx={{ minWidth: 38 }}><PeopleOutlined fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Danh sách hàng hóa" />
+            </ListItemButton>
+            <PermissionGuard resource="inventorys" permission={PERMISSIONS.CREATE}>
+              <ListItemButton selected={location.pathname === '/inventory/create'} onClick={() => navigate('/inventory/create')} sx={{ ...menuStyle, pl: 6 }}>
+                <ListItemIcon sx={{ minWidth: 38 }}><PersonAddOutlined fontSize="small" /></ListItemIcon>
+                <ListItemText primary="Thêm hàng hóa" />
+              </ListItemButton>
+            </PermissionGuard>
+          </List>
+        </Collapse>
 
         <ListItemButton sx={menuStyle}>
           <ListItemIcon sx={{ minWidth: 42 }}><RestaurantMenuOutlined /></ListItemIcon>
           <ListItemText primary="Quản lý thực đơn" />
+          
         </ListItemButton>
 
         <ListItemButton sx={menuStyle}>

@@ -28,12 +28,12 @@ const sortHeaderStyle = {
 function EmployeeList() {
 
 
-  const currentUser = useSelector(selectCurrentUser)
+ const currentUser = useSelector(selectCurrentUser)
 
  const action = (
-  hasPermission(currentUser?.RoleId, PERMISSIONS.EMPLOYEE_UPDATE) ||
-  hasPermission(currentUser?.RoleId, PERMISSIONS.EMPLOYEE_DELETE)
-)
+  hasPermission(currentUser?.RoleId, 'employees', PERMISSIONS.UPDATE) ||
+  hasPermission(currentUser?.RoleId, 'employees', PERMISSIONS.DELETE)
+  )
 
 
 
@@ -241,12 +241,12 @@ function EmployeeList() {
                 </TableCell>
                 {action &&
                 <TableCell align="center">
-                  <PermissionGuard permission={PERMISSIONS.EMPLOYEE_UPDATE}>
+                  <PermissionGuard resource="employees" permission={PERMISSIONS.UPDATE}>
                     <IconButton color="primary">
                       <EditOutlined onClick={() => navigate(`/employees/edit/${user.EmployeeId}`)} />
                     </IconButton>
                   </PermissionGuard>
-                  <PermissionGuard permission={PERMISSIONS.EMPLOYEE_DELETE}>
+                  <PermissionGuard resource="employees" permission={PERMISSIONS.DELETE}>
                   <IconButton color="error" onClick={() => handleDeleteUser(user.EmployeeId)} >                  
                       <DeleteOutlineOutlined />
                     </IconButton>

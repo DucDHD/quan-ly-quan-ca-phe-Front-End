@@ -107,17 +107,37 @@ export const cancelTableAPI = async (TableId) => {
 }
 
 
-
 export const mergeTableAPI = async (data) => {
   const response = await authorizeAxiosInstance.put(`${API_ROOT}/v1/sales/merge_table`, data)
   return response.data
 }
 
+/** API Equipment */
+export const getAllEquipmentAPI = async (params) => {
+  const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/equipments`,{ params })
+  return response.data
+}
 
 
+export const deleteEquipmentAPI = async (equipmentId) => {
+  const response = await authorizeAxiosInstance.delete(`${API_ROOT}/v1/equipments/${equipmentId}`)
+  return response.data
+}
 
+export const createEquipmentAPI = async (data) => {
+  const response = await authorizeAxiosInstance.post(`${API_ROOT}/v1/equipments`, data)
+  return response.data
+}
 
+export const getEquipmentDetailAPI = async (equipmentId) => {
+  const response = await authorizeAxiosInstance.get(`${API_ROOT}/v1/equipments/${equipmentId}`)
+  return response.data
+}
 
+export const updateEquipmentAPI = async (equipmentId, data) => {
+  const response = await authorizeAxiosInstance.put(`${API_ROOT}/v1/equipments/${equipmentId}`, data)
+  return response.data
+}
 
 
 
