@@ -4,11 +4,11 @@ import { hasPermission } from '~/utils/authorization'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 
 
-function PermissionRoute({ permission }) {
+function PermissionRoute({resource, permission }) {
 
   const currentUser = useSelector(selectCurrentUser)
 
-  const allowed = hasPermission(currentUser?.RoleId, permission )
+  const allowed = hasPermission(currentUser?.RoleId,resource, permission )
 
   if (!allowed) {
     return <Navigate to="/" replace />

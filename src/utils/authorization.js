@@ -1,9 +1,7 @@
 import { ROLE_PERMISSIONS } from '../config/rolePermissions'
 
-export const hasPermission = (roleId, permission) => {
+export const hasPermission = (roleId, resource, permission) => {
   if (!roleId || !permission) return false
 
-  const permissions = ROLE_PERMISSIONS[Number(roleId)] || []
-
-  return permissions.includes(permission)
+  return ROLE_PERMISSIONS[roleId]?.[resource]?.includes(permission) || false
 }   
